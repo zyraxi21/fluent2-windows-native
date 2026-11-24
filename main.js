@@ -206,13 +206,13 @@ class Fluent2WindowsNativePlugin extends Plugin {
     this.addSettingTab(new Fluent2WindowsNativeSettingTab(this.app, this));
 
     this.addCommand({
-      id: "fluent2-refresh-windows-native",
-      name: "Refresh Windows 11 Mica & Accent Color / 立即同步 Windows 11 材质与系统主题色",
+      id: "refresh-windows-native",
+      name: "Refresh Windows 11 Mica and Accent Color / 立即同步 Windows 11 材质与系统主题色",
       callback: () => this.refreshAll(true)
     });
 
     this.addCommand({
-      id: "fluent2-cycle-material",
+      id: "cycle-material",
       name: "Cycle Windows 11 Material (Mica / Mica Alt / Acrylic / Off) / 切换窗口材质",
       callback: async () => {
         const order = ["mica", "tabbed", "acrylic", "none"];
@@ -577,7 +577,7 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Fluent 2 Windows Native" });
+    new Setting(containerEl).setName("Fluent 2 Windows Native").setHeading();
 
     const mainWin = this.plugin.getMainBrowserWindow();
     const hasMaterialApi = !!(

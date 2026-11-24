@@ -37,10 +37,10 @@
 
 本插件采用纯原生 CommonJS 编写，零第三方依赖、无需构建编译，直接放入插件目录即可运行：
 
-1. 将本仓库克隆或下载到 Obsidian 库的 `.obsidian/plugins/fluent2-windows-native/` 目录下：
+1. 将本仓库克隆或下载到 Obsidian 库的 `.obsidian/plugins/fluent-windows-native/` 目录下（文件夹名需与 `manifest.json` 中的 `"id": "fluent-windows-native"` 一致）：
 
    ```bash
-   git clone https://github.com/zyraxi21/fluent2-windows-native.git
+   git clone https://github.com/zyraxi21/fluent2-windows-native.git fluent-windows-native
    ```
 
 2. 打开 Obsidian，进入 **设置 → 第三方插件**，点击已安装插件右侧的刷新图标，启用 **Fluent 2 Windows Native**。
