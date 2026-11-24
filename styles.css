@@ -1,0 +1,33 @@
+/* Fluent 2 Windows Native Companion Plugin Styles */
+
+.f2-native-swatch-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.f2-native-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.f2-native-swatch.is-primary {
+  outline: 2px solid var(--text-normal);
+  outline-offset: 1px;
+}
+
+.f2-native-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: var(--background-modifier-hover);
+  color: var(--text-normal);
+}

@@ -1,0 +1,10 @@
+{
+  "id": "fluent2-windows-native",
+  "name": "Fluent 2 Windows Native",
+  "version": "1.0.1",
+  "minAppVersion": "1.5.0",
+  "description": "Enables native Windows 11 Mica / Mica Alt / Acrylic backdrop material (including Obsidian 1.15+ pop-out Settings windows) and live 7-shade Windows 11 Personalization accent color sync for the Fluent 2 theme.",
+  "author": "Fluent 2 for Obsidian",
+  "authorUrl": "https://fluent2.microsoft.design/",
+  "isDesktopOnly": true
+}
