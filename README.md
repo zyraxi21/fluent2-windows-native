@@ -55,6 +55,10 @@
   - `Fluent 2 Windows Native: 立即同步 Windows 11 材质与系统主题色`
   - `Fluent 2 Windows Native: 切换窗口材质`（在 `Mica`、`Tabbed`、`Acrylic`、`None` 之间循环切换）
 
+### 已知问题
+
+- **启用原生窗口材质后，页面内右键菜单无法显示 CSS 亚克力模糊**：受限于 Electron / Chromium 底层渲染机制，调用 `BrowserWindow.setBackgroundMaterial()` 开启 Windows 11 原生 Mica / Acrylic 后，页面内元素的 CSS `backdrop-filter` 高斯模糊会失效。搭配 Fluent 2 主题使用时，右键菜单、命令面板与弹窗会自动回退为接近不透明的亚克力底色，保证清晰可读。
+
 ### 安全与隐私说明
 
 本插件使用 Node.js `child_process.execFile("reg.exe", ["query", ...])` 对 Windows 用户注册表中的主题色键（`HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Accent\AccentPalette` 与 `HKCU\Software\Microsoft\Windows\DWM\AccentColor`）执行**只读查询**，所有参数均为硬编码静态字符串，不启动 Shell、不修改任何系统设置、不发起任何网络请求。
@@ -99,6 +103,10 @@ A zero-dependency Windows 11 companion plugin for Obsidian Desktop that brings n
 4. Use the Command Palette (`Ctrl + P`) anytime to run:
    - **Refresh Windows 11 Mica and Accent Color**
    - **Cycle Windows 11 Material**
+
+### Known Issues
+
+- **CSS Acrylic blur on context menus is disabled while native Mica is active**: Due to an Electron / Chromium compositing limitation with `BrowserWindow.setBackgroundMaterial()`, CSS `backdrop-filter` blur stops rendering while native Windows 11 materials are active. When paired with the Fluent 2 theme, context menus, the Command Palette, and popovers automatically fall back to a near-opaque acrylic surface for readability.
 
 ### Security & Privacy
 
