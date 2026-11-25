@@ -1,7 +1,7 @@
 {
   "id": "fluent-windows-native",
   "name": "Fluent 2 Windows Native",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "1.5.0",
   "description": "Apply native Windows 11 Mica, Mica Alt, or Acrylic window materials and sync the system accent color palette for the Fluent 2 theme.",
   "author": "zyraxi",

@@ -1,7 +1,111 @@
 "use strict";
 
-const { Plugin, PluginSettingTab, Setting, Notice } = require("obsidian");
+const obsidian = require("obsidian");
+const { Plugin, PluginSettingTab, Setting, Notice } = obsidian;
 const { execFile } = require("child_process");
+
+function isChineseLocale() {
+  try {
+    if (typeof obsidian.getLanguage === "function") {
+      const lang = String(obsidian.getLanguage() || "").toLowerCase();
+      if (lang) return lang.startsWith("zh");
+    }
+  } catch (_) {}
+  try {
+    const stored = String(window.localStorage.getItem("language") || "").toLowerCase();
+    if (stored) return stored.startsWith("zh");
+  } catch (_) {}
+  try {
+    if (window.moment && typeof window.moment.locale === "function") {
+      const loc = String(window.moment.locale() || "").toLowerCase();
+      if (loc) return loc.startsWith("zh");
+    }
+  } catch (_) {}
+  return false;
+}
+
+const I18N = {
+  zh: {
+    cmdRefresh: "立即同步 Windows 11 材质与系统主题色",
+    cmdCycle: "切换 Windows 11 窗口材质（Mica / Mica Alt / Acrylic / 关闭）",
+    noticeMaterialSwitched: (m) => `Fluent 2 窗口材质已切换为：${m}`,
+    noticeSynced: (m, ok, accent) =>
+      `Fluent 2 Windows Native 已同步\n材质：${m}（${ok ? "已生效" : "接口不可用"}）\n系统主题色：${accent}`,
+    notRead: "未读取",
+    statusWindows: (ok, source) =>
+      `Windows 桌面环境；Mica API：${ok ? "可用" : "不可用"}；主题色来源：${source || "未同步"}`,
+    statusNonWindows: "当前非 Windows 系统，原生特性已自动休眠。",
+    statusName: "运行状态",
+    syncNow: "立即同步",
+    materialName: "Windows 11 窗口材质（Backdrop Material）",
+    materialDesc:
+      "直接调用 Electron 原生 BrowserWindow.setBackgroundMaterial() API。建议在「设置 → 界面 → 窗口边框样式」保持「隐藏（默认）」。",
+    matMica: "Mica（标准 Windows 11 云母，推荐）",
+    matTabbed: "Mica Alt / Tabbed（层次更强，记事本同款）",
+    matAcrylic: "Acrylic（实时毛玻璃亚克力）",
+    matNone: "关闭原生窗口材质",
+    popoutName: "同步为弹窗与独立设置窗口启用云母材质",
+    popoutDesc:
+      "开启后，Obsidian 1.15+ 的独立「设置」窗口与弹出笔记窗口也会一并套用原生 Windows 11 云母材质。",
+    accentName: "自动同步 Windows 11 系统个性化主题色",
+    accentDesc:
+      "直接读取 Windows 11 注册表 AccentPalette 完整 7 阶色板（浅色自动使用 Dark1/Dark2，深色自动使用 Light2/Light3），与 Windows 11 设置完全一致。",
+    paletteName: "当前读取到的 Windows 11 7 阶主题色板",
+    paletteDesc: (p) => `浅色主色（Dark1）：${p.dark1}；基础色：${p.base}；深色主色（Light2）：${p.light2}`,
+    swatchLight2: "Light2（深色主色）",
+    swatchDark1: "Dark1（浅色主色）",
+    swatchTitle: (k, hex) => `${k}：${hex}`,
+    coreAccentName: "同时覆盖 Obsidian 原生强调色变量（--accent-h/s/l）",
+    coreAccentDesc:
+      "开启后，第三方插件与所有依赖 Obsidian 原生强调色的界面元素也会自动跟随 Windows 11 系统主题色。",
+    focusName: "切换回窗口时自动检测系统主题色变化",
+    focusDesc: "更改 Windows 壁纸或个性化主题色后，切回 Obsidian 立即生效。",
+    pollName: "后台自动轮询间隔（秒）",
+    pollDesc: "设为 0 仅在启动、切回窗口或手动执行命令时同步（默认 15 秒）。"
+  },
+  en: {
+    cmdRefresh: "Refresh Windows 11 Mica and Accent Color",
+    cmdCycle: "Cycle Windows 11 Window Material (Mica / Mica Alt / Acrylic / Off)",
+    noticeMaterialSwitched: (m) => `Fluent 2 window material switched to: ${m}`,
+    noticeSynced: (m, ok, accent) =>
+      `Fluent 2 Windows Native synced\nMaterial: ${m} (${ok ? "active" : "API unavailable"})\nSystem accent: ${accent}`,
+    notRead: "Unavailable",
+    statusWindows: (ok, source) =>
+      `Windows desktop; Mica API: ${ok ? "Available" : "Unavailable"}; Accent source: ${source || "Not synced"}`,
+    statusNonWindows: "Non-Windows platform detected. Native features are idle.",
+    statusName: "Status",
+    syncNow: "Sync now",
+    materialName: "Windows 11 Window Material (Backdrop Material)",
+    materialDesc:
+      "Calls Electron's native BrowserWindow.setBackgroundMaterial() API directly. Keep Settings → Interface → Window frame style set to Hidden (default).",
+    matMica: "Mica (Standard Windows 11 Mica, recommended)",
+    matTabbed: "Mica Alt / Tabbed (Stronger depth, Notepad style)",
+    matAcrylic: "Acrylic (Real-time frosted glass)",
+    matNone: "Off (Disable native window material)",
+    popoutName: "Apply Mica to Pop-out & Standalone Settings Windows",
+    popoutDesc:
+      "Applies native Windows 11 backdrop material to Obsidian 1.15+ standalone Settings windows and pop-out note windows as well.",
+    accentName: "Sync Windows 11 Personalization Accent Color",
+    accentDesc:
+      "Reads the full 7-shade AccentPalette directly from the Windows Registry (Dark1/Dark2 for Light mode, Light2/Light3 for Dark mode), matching Windows 11 Settings.",
+    paletteName: "Detected Windows 11 7-Shade Accent Palette",
+    paletteDesc: (p) => `Light primary (Dark1): ${p.dark1}; Base: ${p.base}; Dark primary (Light2): ${p.light2}`,
+    swatchLight2: "Light2 (Dark primary)",
+    swatchDark1: "Dark1 (Light primary)",
+    swatchTitle: (k, hex) => `${k}: ${hex}`,
+    coreAccentName: "Override Obsidian Core Accent Variables (--accent-h/s/l)",
+    coreAccentDesc:
+      "Updates Obsidian's core accent variables so community plugins and built-in UI controls also follow your Windows 11 system accent color.",
+    focusName: "Check System Accent on Window Focus",
+    focusDesc: "Automatically updates Obsidian when you return to the window after changing your Windows wallpaper or accent color.",
+    pollName: "Background Polling Interval (Seconds)",
+    pollDesc: "Set to 0 to sync only on startup, window focus, or manual command (default: 15)."
+  }
+};
+
+function getStrings() {
+  return isChineseLocale() ? I18N.zh : I18N.en;
+}
 
 const DEFAULT_SETTINGS = {
   material: "mica", // "mica" | "tabbed" | "acrylic" | "none"
@@ -205,21 +309,23 @@ class Fluent2WindowsNativePlugin extends Plugin {
 
     this.addSettingTab(new Fluent2WindowsNativeSettingTab(this.app, this));
 
+    const tr = getStrings();
+
     this.addCommand({
       id: "refresh-windows-native",
-      name: "Refresh Windows 11 Mica and Accent Color / 立即同步 Windows 11 材质与系统主题色",
+      name: tr.cmdRefresh,
       callback: () => this.refreshAll(true)
     });
 
     this.addCommand({
       id: "cycle-material",
-      name: "Cycle Windows 11 Material (Mica / Mica Alt / Acrylic / Off) / 切换窗口材质",
+      name: tr.cmdCycle,
       callback: async () => {
         const order = ["mica", "tabbed", "acrylic", "none"];
         const idx = order.indexOf(this.settings.material);
         this.settings.material = order[(idx + 1) % order.length];
         await this.saveSettings();
-        new Notice("Fluent 2 窗口材质已切换为：" + this.settings.material.toUpperCase());
+        new Notice(getStrings().noticeMaterialSwitched(this.settings.material.toUpperCase()));
       }
     });
 
@@ -524,9 +630,10 @@ class Fluent2WindowsNativePlugin extends Plugin {
     await this.syncWindowsAccent(true);
     const matOk = this.applyMaterialToAllWindows();
     if (showNotice) {
-      const accentText = this.lastPalette ? this.lastPalette.dark1 : "未读取";
+      const tr = getStrings();
+      const accentText = this.lastPalette ? this.lastPalette.dark1 : tr.notRead;
       new Notice(
-        `Fluent 2 Windows Native 已同步\n材质：${this.settings.material.toUpperCase()}（${matOk ? "已生效" : "接口不可用"}）\n系统主题色：${accentText}`
+        tr.noticeSynced(this.settings.material.toUpperCase(), matOk, accentText)
       );
     }
   }
@@ -576,6 +683,7 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
+    const tr = getStrings();
 
     new Setting(containerEl).setName("Fluent 2 Windows Native").setHeading();
 
@@ -584,17 +692,18 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
       mainWin && typeof mainWin.setBackgroundMaterial === "function"
     );
     const statusText = this.plugin.isWindows
-      ? `Windows 桌面环境；Mica API：${hasMaterialApi ? "可用" : "不可用"}；主题色来源：${
-          this.plugin.lastPalette ? this.plugin.lastPalette.source : "未同步"
-        }`
-      : "当前非 Windows 系统，原生特性已自动休眠。";
+      ? tr.statusWindows(
+          hasMaterialApi,
+          this.plugin.lastPalette ? this.plugin.lastPalette.source : ""
+        )
+      : tr.statusNonWindows;
 
     new Setting(containerEl)
-      .setName("运行状态")
+      .setName(tr.statusName)
       .setDesc(statusText)
       .addButton((btn) =>
         btn
-          .setButtonText("立即同步")
+          .setButtonText(tr.syncNow)
           .setCta()
           .onClick(async () => {
             await this.plugin.refreshAll(true);
@@ -603,16 +712,14 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Windows 11 窗口材质（Backdrop Material）")
-      .setDesc(
-        "直接调用 Electron 原生 BrowserWindow.setBackgroundMaterial() API。建议在「设置 → 界面 → 窗口边框样式」保持「隐藏（默认）」。"
-      )
+      .setName(tr.materialName)
+      .setDesc(tr.materialDesc)
       .addDropdown((dd) =>
         dd
-          .addOption("mica", "Mica（标准 Windows 11 云母，推荐）")
-          .addOption("tabbed", "Mica Alt / Tabbed（层次更强，记事本同款）")
-          .addOption("acrylic", "Acrylic（实时毛玻璃亚克力）")
-          .addOption("none", "关闭原生窗口材质")
+          .addOption("mica", tr.matMica)
+          .addOption("tabbed", tr.matTabbed)
+          .addOption("acrylic", tr.matAcrylic)
+          .addOption("none", tr.matNone)
           .setValue(this.plugin.settings.material)
           .onChange(async (value) => {
             this.plugin.settings.material = value;
@@ -621,10 +728,8 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("同步为弹窗与独立设置窗口启用云母材质")
-      .setDesc(
-        "开启后，Obsidian 1.15+ 的独立「设置」窗口与弹出笔记窗口也会一并套用原生 Windows 11 云母材质。"
-      )
+      .setName(tr.popoutName)
+      .setDesc(tr.popoutDesc)
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.applyToPopoutWindows)
@@ -635,10 +740,8 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("自动同步 Windows 11 系统个性化主题色")
-      .setDesc(
-        "直接读取 Windows 11 注册表 AccentPalette 完整 7 阶色板（浅色自动使用 Dark1/Dark2，深色自动使用 Light2/Light3），与 Windows 11 设置完全一致。"
-      )
+      .setName(tr.accentName)
+      .setDesc(tr.accentDesc)
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.syncSystemAccent)
@@ -652,18 +755,16 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
     if (this.plugin.lastPalette && this.plugin.settings.syncSystemAccent) {
       const p = this.plugin.lastPalette;
       const previewSetting = new Setting(containerEl)
-        .setName("当前读取到的 Windows 11 7 阶主题色板")
-        .setDesc(
-          `浅色主色（Dark1）：${p.dark1}；基础色：${p.base}；深色主色（Light2）：${p.light2}`
-        );
+        .setName(tr.paletteName)
+        .setDesc(tr.paletteDesc(p));
 
       const row = previewSetting.controlEl.createDiv({ cls: "f2-native-swatch-row" });
       [
         { key: "Light3", hex: p.light3 },
-        { key: "Light2（深色主色）", hex: p.light2, primary: true },
+        { key: tr.swatchLight2, hex: p.light2, primary: true },
         { key: "Light1", hex: p.light1 },
         { key: "Base", hex: p.base },
-        { key: "Dark1（浅色主色）", hex: p.dark1, primary: true },
+        { key: tr.swatchDark1, hex: p.dark1, primary: true },
         { key: "Dark2", hex: p.dark2 },
         { key: "Dark3", hex: p.dark3 }
       ].forEach((item) => {
@@ -671,16 +772,14 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
           cls: "f2-native-swatch" + (item.primary ? " is-primary" : "")
         });
         dot.style.backgroundColor = item.hex;
-        dot.setAttribute("aria-label", `${item.key}：${item.hex}`);
-        dot.setAttribute("title", `${item.key}：${item.hex}`);
+        dot.setAttribute("aria-label", tr.swatchTitle(item.key, item.hex));
+        dot.setAttribute("title", tr.swatchTitle(item.key, item.hex));
       });
     }
 
     new Setting(containerEl)
-      .setName("同时覆盖 Obsidian 原生强调色变量（--accent-h/s/l）")
-      .setDesc(
-        "开启后，第三方插件与所有依赖 Obsidian 原生强调色的界面元素也会自动跟随 Windows 11 系统主题色。"
-      )
+      .setName(tr.coreAccentName)
+      .setDesc(tr.coreAccentDesc)
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.syncObsidianCoreAccent)
@@ -691,8 +790,8 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("切换回窗口时自动检测系统主题色变化")
-      .setDesc("更改 Windows 壁纸或个性化主题色后，切回 Obsidian 立即生效。")
+      .setName(tr.focusName)
+      .setDesc(tr.focusDesc)
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.autoRefreshOnFocus)
@@ -703,8 +802,8 @@ class Fluent2WindowsNativeSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("后台自动轮询间隔（秒）")
-      .setDesc("设为 0 仅在启动、切回窗口或手动执行命令时同步（默认 15 秒）。")
+      .setName(tr.pollName)
+      .setDesc(tr.pollDesc)
       .addText((text) =>
         text
           .setPlaceholder("15")
