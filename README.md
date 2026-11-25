@@ -6,7 +6,7 @@
 
 ## 简体中文
 
-为 Obsidian 桌面端（Windows 11）提供零依赖的原生系统特性增强，是 [Fluent-2-Obsidian](https://github.com/zyraxi21/Fluent-2-Obsidian) 主题的官方配套插件。
+为 Obsidian 桌面端（Windows 11）提供零依赖的原生系统特性增强，是 [Fluent 2](https://community.obsidian.md/themes/fluent-2) 主题的官方配套插件。
 
 ### 核心功能
 
@@ -31,7 +31,7 @@
 - **操作系统**：Windows 11 22H2（Build 22621）及以上（非 Windows 平台下插件会自动休眠，不产生副作用）。
 - **Obsidian 版本**：桌面端 `1.5.0` 及以上（需包含支持 `setBackgroundMaterial()` 的 Electron 25+ 内核）。
 - **窗口边框设置**：建议在 **设置 → 界面 → 窗口边框样式**（Obsidian 1.13 及以上位于「界面」，旧版位于「外观」）保持 **隐藏（默认）**。
-- **推荐主题**：搭配 [Fluent-2-Obsidian](https://github.com/zyraxi21/Fluent-2-Obsidian) 主题以获得完整的云母层级与 7 阶主题色联动效果。
+- **推荐主题**：搭配 [Fluent 2](https://community.obsidian.md/themes/fluent-2) 主题以获得完整的云母层级与 7 阶主题色联动效果。
 
 ### 安装方式
 
@@ -68,7 +68,7 @@
 
 ## English
 
-A zero-dependency Windows 11 companion plugin for Obsidian Desktop that brings native **Mica / Mica Alt / Acrylic** window backdrop materials and live **7-shade Windows 11 Personalization accent color** synchronization to Obsidian. Designed for the [Fluent-2-Obsidian](https://github.com/zyraxi21/Fluent-2-Obsidian) theme and compatible with any translucent-ready theme.
+A zero-dependency Windows 11 companion plugin for Obsidian Desktop that brings native **Mica / Mica Alt / Acrylic** window backdrop materials and live **7-shade Windows 11 Personalization accent color** synchronization to Obsidian. Designed for the [Fluent 2](https://community.obsidian.md/themes/fluent-2) theme and compatible with any translucent-ready theme.
 
 ### Features
 
